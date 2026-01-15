@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react'
+import React, { useContext, useEffect, useState, useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AppContext } from '../context/AppContext'
 import Navbar from '../components/Navbar'
@@ -11,25 +11,15 @@ const DonorDashboard = () => {
   const [donations, setDonations] = useState([])
   const [totalDonated, setTotalDonated] = useState(0)
   const [loading, setLoading] = useState(true)
-  const [showPaymentForm, setShowPaymentForm] = useState(false)
-  const [amount, setAmount] = useState('')
-  const [processing, setProcessing] = useState(false)
-  const [paymentStatus, setPaymentStatus] = useState(null)
+  const [statusFilter, setStatusFilter] = useState('all')
+  const initialFetchDone = useRef(false)
 
-  useEffect(() => {
-    if (userData && !userData.isAccountVerified) {
-      navigate('/email-verify')
+  const fetchUserDonations = useCallback(async () => {
+    if (!userData || !userData._id) {
+      setLoading(false)
+      return
     }
-  }, [userData, navigate])
 
-  // Fetch user donations on component mount
-  useEffect(() => {
-    if (userData && userData._id) {
-      fetchUserDonations()
-    }
-  }, [userData])
-
-  const fetchUserDonations = async () => {
     try {
       setLoading(true)
       const response = await axios.get(`${backendURL}/api/payment/user-donations`, {
@@ -41,92 +31,44 @@ const DonorDashboard = () => {
         setTotalDonated(response.data.totalDonated || 0)
       } else {
         toast.error(response.data.message || 'Failed to load donations')
+        setDonations([])
+        setTotalDonated(0)
       }
     } catch (error) {
       console.error('Error fetching donations:', error)
       toast.error('Error loading donations')
+      setDonations([])
+      setTotalDonated(0)
     } finally {
       setLoading(false)
     }
-  }
+  }, [userData, backendURL])
 
-  const handleDonate = async (e) => {
-    e.preventDefault()
-
-    if (!amount || parseFloat(amount) <= 0) {
-      toast.error('Please enter a valid amount')
-      return
+  useEffect(() => {
+    if (userData && !userData.isAccountVerified) {
+      navigate('/email-verify')
     }
+  }, [userData, navigate])
 
-    setProcessing(true)
-    setPaymentStatus({ type: 'pending', message: 'Processing your donation...' })
+  // Fetch user donations on component mount
+  useEffect(() => {
+    if (userData && userData._id && !initialFetchDone.current) {
+      initialFetchDone.current = true
+      fetchUserDonations()
+    }
+  }, [userData, fetchUserDonations])
 
-    try {
-      // Create payment intent
-      const paymentResponse = await axios.post(
-        `${backendURL}/api/payment/create-payment-intent`,
-        { amount: parseFloat(amount), userId: userData._id },
-        { withCredentials: true }
-      )
-
-      if (!paymentResponse.data.success) {
-        setPaymentStatus({
-          type: 'failed',
-          message: paymentResponse.data.message || 'Failed to initiate payment',
-        })
-        toast.error('Failed to initiate payment')
-        return
+  // Refetch donations when page becomes visible (user returns from another page)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden && userData && userData._id) {
+        fetchUserDonations()
       }
-
-      const { clientSecret, paymentIntentId, donationId } = paymentResponse.data
-
-      // For demo purposes, simulate payment success after 2 seconds
-      // In production, you would use Stripe.js to handle the actual payment
-      setPaymentStatus({ type: 'pending', message: 'Completing payment...' })
-
-      setTimeout(async () => {
-        try {
-          // Confirm payment (simulating successful payment)
-          const confirmResponse = await axios.post(
-            `${backendURL}/api/payment/confirm-payment`,
-            { paymentIntentId, donationId, status: 'success' },
-            { withCredentials: true }
-          )
-
-          if (confirmResponse.data.success) {
-            setPaymentStatus({
-              type: 'success',
-              message: `Payment successful! Donated $${amount}`,
-            })
-            toast.success(`Donation of $${amount} successful!`)
-            setAmount('')
-            setShowPaymentForm(false)
-            // Refresh donations list
-            fetchUserDonations()
-          } else {
-            setPaymentStatus({ type: 'failed', message: confirmResponse.data.message })
-            toast.error('Payment confirmation failed')
-          }
-        } catch (error) {
-          console.error('Error confirming payment:', error)
-          setPaymentStatus({
-            type: 'failed',
-            message: 'Error confirming payment. Please try again.',
-          })
-          toast.error('Error confirming payment')
-        }
-      }, 2000)
-    } catch (error) {
-      console.error('Error creating payment intent:', error)
-      setPaymentStatus({
-        type: 'failed',
-        message: 'Error initiating payment. Please try again.',
-      })
-      toast.error('Error initiating payment')
-    } finally {
-      setProcessing(false)
     }
-  }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
+  }, [userData, fetchUserDonations])
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -154,6 +96,17 @@ const DonorDashboard = () => {
     }
   }
 
+  // Calculate donation counts by status
+  const successfulDonations = donations.filter((d) => d.status === 'success').length
+  const pendingDonations = donations.filter((d) => d.status === 'pending').length
+  const failedDonations = donations.filter((d) => d.status === 'failed').length
+
+  // Filter donations based on selected status
+  const filteredDonations =
+    statusFilter === 'all'
+      ? donations
+      : donations.filter((d) => d.status === statusFilter)
+
   if (!userData || userData.role !== 'donor') {
     return <div>Access Denied</div>
   }
@@ -166,102 +119,63 @@ const DonorDashboard = () => {
         <p className="text-gray-600 mb-8">Welcome, {userData.name}! Manage your donations below.</p>
 
         {/* Donation Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <div className="bg-white p-6 rounded-lg shadow">
             <h3 className="text-gray-600 text-sm font-semibold">Total Donated</h3>
             <p className="text-3xl font-bold text-green-600">${totalDonated.toFixed(2)}</p>
           </div>
           <div className="bg-white p-6 rounded-lg shadow">
-            <h3 className="text-gray-600 text-sm font-semibold">Total Donations</h3>
-            <p className="text-3xl font-bold text-blue-600">{donations.length}</p>
+            <h3 className="text-gray-600 text-sm font-semibold">Successful Donations</h3>
+            <p className="text-3xl font-bold text-green-600">{successfulDonations}</p>
+          </div>
+          <div className="bg-white p-6 rounded-lg shadow">
+            <h3 className="text-gray-600 text-sm font-semibold">Pending Donations</h3>
+            <p className="text-3xl font-bold text-yellow-600">{pendingDonations}</p>
+          </div>
+          <div className="bg-white p-6 rounded-lg shadow">
+            <h3 className="text-gray-600 text-sm font-semibold">Failed Donations</h3>
+            <p className="text-3xl font-bold text-red-600">{failedDonations}</p>
           </div>
         </div>
 
         {/* Make a Donation Button */}
-        {!showPaymentForm && (
-          <button
-            onClick={() => setShowPaymentForm(true)}
-            className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mb-8"
-          >
-            + Make a Donation
-          </button>
-        )}
-
-        {/* Payment Form */}
-        {showPaymentForm && (
-          <div className="bg-white p-6 rounded-lg shadow mb-8">
-            <h2 className="text-2xl font-semibold mb-4">Make a Donation</h2>
-            <form onSubmit={handleDonate}>
-              <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="amount">
-                  Donation Amount ($)
-                </label>
-                <input
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-green-600"
-                  id="amount"
-                  type="number"
-                  step="0.01"
-                  min="0.01"
-                  placeholder="Enter amount"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  disabled={processing}
-                  required
-                />
-              </div>
-
-              {/* Payment Status Messages */}
-              {paymentStatus && (
-                <div
-                  className={`mb-4 p-4 rounded-md ${
-                    paymentStatus.type === 'success'
-                      ? 'bg-green-100 text-green-800'
-                      : paymentStatus.type === 'failed'
-                        ? 'bg-red-100 text-red-800'
-                        : 'bg-yellow-100 text-yellow-800'
-                  }`}
-                >
-                  {paymentStatus.message}
-                </div>
-              )}
-
-              <div className="flex gap-4">
-                <button
-                  type="submit"
-                  disabled={processing}
-                  className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-bold py-2 px-4 rounded"
-                >
-                  {processing ? 'Processing...' : 'Donate Now'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowPaymentForm(false)
-                    setPaymentStatus(null)
-                    setAmount('')
-                  }}
-                  className="bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded"
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        )}
+        <button
+          onClick={() => navigate('/donation-payment?amount=0.50')}
+          className="bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-4 rounded mb-8 flex justify-self-center"
+        >
+          Make a Donation
+        </button>
 
         {/* Donation History */}
         <div>
-          <h2 className="text-2xl font-semibold mb-4">Donation History</h2>
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-semibold">Donation History</h2>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-gray-700 bg-white font-medium"
+            >
+              <option value="all">All</option>
+              <option value="success">Successful</option>
+              <option value="pending">Pending</option>
+              <option value="failed">Failed</option>
+            </select>
+          </div>
           {loading ? (
             <p className="text-gray-600">Loading donations...</p>
-          ) : donations.length === 0 ? (
-            <p className="text-gray-600">No donations yet. Make your first donation!</p>
+          ) : filteredDonations.length === 0 ? (
+            <p className="text-gray-600">
+              {statusFilter === 'all'
+                ? 'No donation history'
+                : `No ${statusFilter} donations`}
+            </p>
           ) : (
             <div className="space-y-4">
-              {donations.map((donation) => (
+              {filteredDonations.map((donation) => (
                 <div
                   key={donation._id}
-                  className={`border-2 p-4 rounded-lg ${getStatusColor(donation.status)}`}
+                  className={`border-2 p-4 rounded-lg cursor-pointer hover:shadow-md transition-shadow ${getStatusColor(donation.status)}`}
+                  onClick={() => navigate(`/payment-confirmation/${donation._id}`)}
                 >
                   <div className="flex justify-between items-start">
                     <div>

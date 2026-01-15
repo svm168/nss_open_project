@@ -6,7 +6,9 @@ import VerifyEmail from "./pages/VerifyEmail.jsx"
 import ResetPassword from "./pages/ResetPassword.jsx"
 import Profile from "./pages/Profile.jsx"
 import DonorDashboard from "./pages/DonorDashboard.jsx"
+import DonationPayment from "./pages/DonationPayment.jsx"
 import AdminDashboard from "./pages/AdminDashboard.jsx"
+import PaymentConfirmation from "./pages/PaymentConfirmation.jsx"
 import { ToastContainer } from 'react-toastify'
 import { AppContext } from './context/AppContext'
 
@@ -29,6 +31,8 @@ function AppContent() {
       <Route path="/reset-password" element={<ResetPassword/>}/>
       <Route path="/profile" element={<Profile/>}/>
       <Route path="/donor-dashboard" element={<DonorDashboard/>}/>
+      <Route path="/donation-payment" element={<DonationPayment/>}/>
+      <Route path="/payment-confirmation/:donationId" element={<PaymentConfirmation/>}/>
       <Route path="/admin-dashboard" element={<AdminDashboard/>}/>
     </Routes>
   )

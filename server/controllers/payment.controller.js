@@ -5,7 +5,7 @@ import User from '../models/user.model.js'
 export const createPaymentIntent = async (req, res) => {
 	const { amount, userId } = req.body
 
-	if(!amount || amount <= 0) return res.json({ success: false, message: 'Invalid amount' })
+	if(!amount || amount < 0.50) return res.json({ success: false, message: 'Minimum donation amount is $0.50' })
 
 	if(!userId) return res.json({ success: false, message: 'User not authenticated' })
 
@@ -56,20 +56,33 @@ export const createPaymentIntent = async (req, res) => {
 }
 
 export const confirmPayment = async (req, res) => {
-	const { paymentIntentId, donationId, status } = req.body
+	const { paymentIntentId, donationId, status, failureReason } = req.body
 
-	if(!paymentIntentId || !donationId) return res.json({ success: false, message: 'Missing payment details' })
+	if(!donationId) return res.json({ success: false, message: 'Missing donation details' })
 
 	try{
 		const donation = await Donation.findById(donationId)
 		if(!donation) return res.json({ success: false, message: 'Donation not found' })
 
-		const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId)
-
 		let donationStatus = 'pending'
-		if(paymentIntent.status === 'succeeded') donationStatus = 'success'
-		else if(paymentIntent.status === 'requires_payment_method' || paymentIntent.status === 'requires_action') donationStatus = 'pending'
-		else donationStatus = 'failed'
+		
+		// If status is explicitly provided (e.g., 'failed' from frontend), use it
+		if(status === 'failed') {
+			donationStatus = 'failed'
+			donation.failureReason = failureReason || 'Payment declined'
+		}
+		// Otherwise, if paymentIntentId exists, retrieve from Stripe
+		else if(paymentIntentId) {
+			const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId)
+
+			if(paymentIntent.status === 'succeeded') donationStatus = 'success'
+			else if(paymentIntent.status === 'requires_payment_method' || paymentIntent.status === 'requires_action') donationStatus = 'pending'
+			else donationStatus = 'failed'
+
+			if(donationStatus === 'failed'){
+				donation.failureReason = paymentIntent.last_payment_error?.message || 'Payment failed'
+			}
+		}
 
 		donation.status = donationStatus
 		donation.updatedAt = new Date()
@@ -81,9 +94,6 @@ export const confirmPayment = async (req, res) => {
 				user.totalDonated = (user.totalDonated || 0) + donation.amount
 				await user.save()
 			}
-		}
-        else if(donationStatus === 'failed'){
-			donation.failureReason = paymentIntent.last_payment_error?.message || 'Payment failed'
 		}
 
 		await donation.save()
@@ -104,7 +114,7 @@ export const confirmPayment = async (req, res) => {
 }
 
 export const getUserDonations = async (req, res) => {
-	const { userId } = req.body
+	const userId = req.body?.userId
 
 	if(!userId) return res.json({ success: false, message: 'User not authenticated' })
 
@@ -117,6 +127,16 @@ export const getUserDonations = async (req, res) => {
 
 		if(!user) return res.json({ success: false, message: 'User not found' })
 
+		// Calculate total donated from successful donations
+		const successfulDonations = (user.donations || []).filter(d => d.status === 'success')
+		const calculatedTotalDonated = successfulDonations.reduce((sum, d) => sum + (d.amount || 0), 0)
+
+		// Update user's totalDonated if it's different
+		if(user.totalDonated !== calculatedTotalDonated) {
+			user.totalDonated = calculatedTotalDonated
+			await user.save()
+		}
+
 		return res.json({
 			success: true,
 			donations: user.donations || [],
@@ -128,6 +148,34 @@ export const getUserDonations = async (req, res) => {
 		return res.json({
 			success: false,
 			message: error.message || 'Failed to fetch donations',
+		})
+	}
+}
+
+export const getDonationById = async (req, res) => {
+	const { donationId } = req.params
+
+	if(!donationId) return res.json({ success: false, message: 'Donation ID is required' })
+
+	try{
+		const donation = await Donation.findById(donationId).populate({
+			path: 'donorId',
+			model: 'User',
+			select: 'name email',
+		})
+
+		if(!donation) return res.json({ success: false, message: 'Donation not found' })
+
+		return res.json({
+			success: true,
+			donation: donation,
+		})
+	}
+    catch(error){
+		console.error('Get Donation Error:', error)
+		return res.json({
+			success: false,
+			message: error.message || 'Failed to fetch donation',
 		})
 	}
 }
