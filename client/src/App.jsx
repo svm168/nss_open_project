@@ -4,6 +4,7 @@ import Home from "./pages/Home.jsx"
 import Login from "./pages/Login.jsx"
 import VerifyEmail from "./pages/VerifyEmail.jsx"
 import ResetPassword from "./pages/ResetPassword.jsx"
+import Profile from "./pages/Profile.jsx"
 import DonorDashboard from "./pages/DonorDashboard.jsx"
 import AdminDashboard from "./pages/AdminDashboard.jsx"
 import { ToastContainer } from 'react-toastify'
@@ -26,6 +27,7 @@ function AppContent() {
       <Route path="/login" element={<Login/>}/>
       <Route path="/email-verify" element={<VerifyEmail/>}/>
       <Route path="/reset-password" element={<ResetPassword/>}/>
+      <Route path="/profile" element={<Profile/>}/>
       <Route path="/donor-dashboard" element={<DonorDashboard/>}/>
       <Route path="/admin-dashboard" element={<AdminDashboard/>}/>
     </Routes>

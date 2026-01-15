@@ -12,6 +12,7 @@ export const getUserData = async (req, res) => {
 
         return res.json({ success: true, userData: {
             name: user.name,
+            email: user.email,      // sending email also to show in profile page
             isAccountVerified: user.isAccountVerified,
             role: user.role
         }})

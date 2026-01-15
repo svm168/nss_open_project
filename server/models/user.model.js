@@ -13,6 +13,9 @@ const userSchema = mongoose.Schema({
 
 	resetOTP: { type: String, default: '' },
 	resetOPTExpireAt: { type: Number, default: 0 },
+
+	donations: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Donation' }],
+	totalDonated: { type: Number, default: 0 },
 })
 
 const User = mongoose.models.User || mongoose.model('User', userSchema)

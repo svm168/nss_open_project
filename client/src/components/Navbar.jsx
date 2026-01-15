@@ -61,7 +61,8 @@ function Navbar() {
                     <div className="absolute hidden group-hover:block top-0 mt-1 right-0 z-10 text-white pt-10">
                         <ul className="list-none m-0 p-2 bg-black text-sm rounded-lg">
                             {/* {!userData.isAccountVerified && <li onClick={sendVerificationOTP} className="py-1 px-2 hover:bg-gray-700 cursor-pointer rounded-t-lg">Verify E-mail</li>} */}
-                            <li onClick={logout} className="py-1 px-2 hover:bg-gray-700 cursor-pointer pr-10 rounded-lg">Logout</li>
+                            <li onClick={() => navigate('/profile')} className="py-1 px-2 hover:bg-gray-700 cursor-pointer rounded-t-lg">Profile</li>
+                            <li onClick={logout} className="py-1 px-2 hover:bg-gray-700 cursor-pointer pr-10 rounded-b-lg">Logout</li>
                         </ul>
                     </div>
                 </div>

@@ -1,21 +1,15 @@
 import mongoose from 'mongoose'
 
 const donationSchema = mongoose.Schema({
-    donorId: {type: String, required: true},
-    amount: {type: Number, default: 0},
-    status: {type: String, enum: ['success', 'pending', 'failed']},
-    // name: { type: String, required: true },
-    // email: { type: String, required: true },
-    // password: { type: String, required: true },
-    // role: { type: String, enum: ['donor', 'admin'], default: 'donor' },
-
-    // verifyOTP: { type: String, default: '' },
-    // verifyOTPExpireAt: { type: Number, default: 0 },
-
-    // isAccountVerified: { type: Boolean, default: false },
-
-    // resetOTP: { type: String, default: '' },
-    // resetOPTExpireAt: { type: Number, default: 0 },
+    donorId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    amount: { type: Number, required: true, min: 0.01 },
+    status: { type: String, enum: ['pending', 'success', 'failed'], default: 'pending' },
+    stripePaymentIntentId: { type: String, default: '' },
+    currency: { type: String, default: 'usd' },
+    paymentMethod: { type: String, default: 'card' },
+    createdAt: { type: Date, default: Date.now },
+    updatedAt: { type: Date, default: Date.now },
+    failureReason: { type: String, default: '' },
 })
 
 const Donation = mongoose.models.Donation || mongoose.model('Donation', donationSchema)

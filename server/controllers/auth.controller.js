@@ -40,8 +40,8 @@ export const register = async (req, res) => {
 		const mailOptions = {
 			from: process.env.SENDER_EMAIL,
 			to: email,
-			subject: 'Welcome to my MERN Auth project website!',
-			text: `Welcome to my MERN Authentication project website. Your account has been created.`
+			subject: 'Welcome to my NGO website! Support humanity!',
+			text: `Alone we can do so little, together we can do so much.`
 		}
 
 		await transporter.sendMail(mailOptions)

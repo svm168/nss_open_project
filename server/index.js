@@ -5,6 +5,7 @@ import cors from 'cors'
 import cookieParser from 'cookie-parser'
 import authRouter from './routes/auth.route.js'
 import userRouter from './routes/user.route.js'
+import paymentRouter from './routes/payment.route.js'
 
 const app = express()
 const port = process.env.PORT || 3000
@@ -20,5 +21,6 @@ app.use(cors({ origin: allowedOrigins, credentials: true }))
 app.get('/', (req, res) => res.send('Backend Working fine.'))
 app.use('/api/auth', authRouter)
 app.use('/api/user', userRouter)
+app.use('/api/payment', paymentRouter)
 
 app.listen(port, () => console.log(`Server listening on port: ${port}`))
