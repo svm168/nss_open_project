@@ -6,6 +6,12 @@ import cookieParser from 'cookie-parser'
 import authRouter from './routes/auth.route.js'
 import userRouter from './routes/user.route.js'
 import paymentRouter from './routes/payment.route.js'
+import causeRouter from './routes/cause.route.js'
+import path from 'path'
+import { fileURLToPath } from 'url'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 const app = express()
 const port = process.env.PORT || 3000
@@ -17,10 +23,14 @@ app.use(express.json())
 app.use(cookieParser())
 app.use(cors({ origin: allowedOrigins, credentials: true }))
 
+// Serve uploaded images as static files
+app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')))
+
 // API End points:
 app.get('/', (req, res) => res.send('Backend Working fine.'))
 app.use('/api/auth', authRouter)
 app.use('/api/user', userRouter)
 app.use('/api/payment', paymentRouter)
+app.use('/api/cause', causeRouter)
 
 app.listen(port, () => console.log(`Server listening on port: ${port}`))

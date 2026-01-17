@@ -11,5 +11,5 @@ export const assets = {
     logo,
     mail_icon,
     person_icon,
-    bg_img
+    bg_img,
 }

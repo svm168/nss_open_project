@@ -2,6 +2,8 @@ import mongoose from 'mongoose'
 
 const donationSchema = mongoose.Schema({
     donorId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    causeId: { type: mongoose.Schema.Types.ObjectId, ref: 'Cause', required: true },
+    causeName: { type: String, required: true },
     amount: { type: Number, required: true, min: 0.01 },
     status: { type: String, enum: ['pending', 'success', 'failed'], default: 'pending' },
     stripePaymentIntentId: { type: String, default: '' },

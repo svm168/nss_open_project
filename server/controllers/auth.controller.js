@@ -37,15 +37,6 @@ export const register = async (req, res) => {
 			maxAge: 7 * 24 * 60 * 60 * 1000,
 		})
 
-		const mailOptions = {
-			from: process.env.SENDER_EMAIL,
-			to: email,
-			subject: 'Welcome to my NGO website! Support humanity!',
-			text: `Alone we can do so little, together we can do so much.`
-		}
-
-		await transporter.sendMail(mailOptions)
-
 		return res.json({ success: true })
 	} catch (error) {
 		res.json({ success: false, message: error.message })
@@ -210,9 +201,25 @@ export const verifyEmail = async (req, res) => {
 		}
 
 		user.isAccountVerified = true
+		user.registeredDate = new Date()
 		user.verifyOTP = ''
 		user.verifyOTPExpireAt = 0
 		await user.save()
+
+		// Send welcome email after email verification is completed
+		const mailOptions = {
+			from: process.env.SENDER_EMAIL,
+			to: user.email,
+			subject: 'Welcome to my NGO website! Support humanity!',
+			text: `Alone we can do so little, together we can do so much.`
+		}
+
+		try {
+			await transporter.sendMail(mailOptions)
+		} catch (emailError) {
+			console.error('Error sending welcome email:', emailError)
+			// Don't fail the verification if welcome email fails
+		}
 
 		return res.json({ success: true, message: 'E-mail verified successfully.' })
 	} catch (error) {

@@ -21,3 +21,22 @@ export const getUserData = async (req, res) => {
         return res.json({ success: false, message: error.message})
     }
 }
+
+// Get all users with donor role (Admin only)
+export const getAllDonors = async (req, res) => {
+    try {
+        const donors = await User.find({ role: 'donor' }).select('_id name email isAccountVerified registeredDate')
+
+        return res.json({
+            success: true,
+            donors: donors,
+            totalDonors: donors.length,
+        })
+    } catch (error) {
+        console.error('Get All Donors Error:', error)
+        return res.json({
+            success: false,
+            message: error.message || 'Failed to fetch donors',
+        })
+    }
+}

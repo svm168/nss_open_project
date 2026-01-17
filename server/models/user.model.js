@@ -10,6 +10,7 @@ const userSchema = mongoose.Schema({
 	verifyOTPExpireAt: { type: Number, default: 0 },
 
 	isAccountVerified: { type: Boolean, default: false },
+	registeredDate: { type: Date, default: null },
 
 	resetOTP: { type: String, default: '' },
 	resetOPTExpireAt: { type: Number, default: 0 },

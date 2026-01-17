@@ -62,26 +62,6 @@ function Login() {
     }
   }
 
-  // const byPassHandler = async () => {
-  //   try {      
-  //     axios.defaults.withCredentials = true
-
-  //     const { data } = await axios.post(`${backendURL}/api/auth/bypass`)
-
-  //     if(data.success){
-  //       setIsLoggedIn(true)
-  //       getUserData()
-  //       navigate('/')
-  //       toast.success('Logged in as Recruiter!')
-  //     }
-  //     else{
-  //       toast.error(data.message)
-  //     }
-  //   } catch (error) {
-  //     toast.error(error.message)
-  //   }
-  // }
-
   useEffect(() => {
     if (isLoggedIn && userData) {
       if (!userData.isAccountVerified) {
@@ -97,8 +77,6 @@ function Login() {
   return (
     <div className="flex items-center justify-center min-h-screen px-6 sm:px-0">
       <Navbar/>
-      {/* <img src={assets.logo} alt="" className="absolute left-5 sm:left-20 top-5 w-32 sm:w-42 cursor-pointer"
-      onClick={() => navigate('/')}/> */}
       <div className="bg-slate-900 p-10 rounded-lg shadow-lg w-full sm:w-96 text-indigo-300 text-sm">
         <h2 className="text-3xl font-semibold text-white text-center mb-3">
           {state === 'Sign Up' ? 'Create Account' : 'Login'}</h2>
@@ -161,11 +139,6 @@ function Login() {
             <span onClick={() => setState('Sign Up')} className="text-blue-400 cursor-pointer underline">Sign Up</span>
           </p>
         ) }
-
-        {/* <p
-          className="whitespace-pre text-white text-center text-xs mt-4">Want to explore rest of the Port Folio without logging in?{'    '}
-          <span onClick={() => byPassHandler()} className="text-blue-400 cursor-pointer underline">Click Here</span>
-        </p> */}
 
       </div>
     </div>

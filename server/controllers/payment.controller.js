@@ -1,17 +1,23 @@
 import stripe from '../config/stripe.config.js'
 import Donation from '../models/donation.model.js'
 import User from '../models/user.model.js'
+import Cause from '../models/cause.model.js'
 
 export const createPaymentIntent = async (req, res) => {
-	const { amount, userId } = req.body
+	const { amount, userId, causeId } = req.body
 
 	if(!amount || amount < 0.50) return res.json({ success: false, message: 'Minimum donation amount is $0.50' })
 
 	if(!userId) return res.json({ success: false, message: 'User not authenticated' })
 
+	if(!causeId) return res.json({ success: false, message: 'Cause is required' })
+
 	try{
 		const user = await User.findById(userId)
 		if(!user) return res.json({ success: false, message: 'User not found' })
+
+		const cause = await Cause.findById(causeId)
+		if(!cause) return res.json({ success: false, message: 'Cause not found' })
 
 		// Create a payment intent with Stripe
 		const paymentIntent = await stripe.paymentIntents.create({
@@ -22,12 +28,15 @@ export const createPaymentIntent = async (req, res) => {
 				userId: userId.toString(),
 				userName: user.name,
 				userEmail: user.email,
+				causeId: causeId.toString(),
 			},
 		})
 
 		// Donation record with pending status for MongoDB
 		const donation = new Donation({
 			donorId: userId,
+			causeId: causeId,
+			causeName: cause.name,
 			amount: amount,
 			status: 'pending',
 			stripePaymentIntentId: paymentIntent.id,
@@ -122,6 +131,11 @@ export const getUserDonations = async (req, res) => {
 		const user = await User.findById(userId).populate({
 			path: 'donations',
 			model: 'Donation',
+			populate: {
+				path: 'causeId',
+				model: 'Cause',
+				select: 'name image',
+			},
 			options: { sort: { createdAt: -1 } },
 		})
 
@@ -158,11 +172,13 @@ export const getDonationById = async (req, res) => {
 	if(!donationId) return res.json({ success: false, message: 'Donation ID is required' })
 
 	try{
-		const donation = await Donation.findById(donationId).populate({
-			path: 'donorId',
-			model: 'User',
-			select: 'name email',
-		})
+		const donation = await Donation.findById(donationId)
+			.populate({
+				path: 'donorId',
+				model: 'User',
+				select: 'name email',
+			})
+			.populate('causeId')
 
 		if(!donation) return res.json({ success: false, message: 'Donation not found' })
 
@@ -197,6 +213,11 @@ export const getAllDonations = async (req, res) => {
 				path: 'donorId',
 				model: 'User',
 				select: 'name email',
+			})
+			.populate({
+				path: 'causeId',
+				model: 'Cause',
+				select: 'name image',
 			})
 			.sort({ createdAt: -1 })
 

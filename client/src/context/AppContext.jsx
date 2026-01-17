@@ -11,6 +11,8 @@ export const AppContextProvider = (props) => {
     const backendURL = import.meta.env.VITE_BACKEND_URL     // Syntax to write environment variables in frontend.
     const [isLoggedIn, setIsLoggedIn] = useState(false)
     const [userData, setUserData] = useState(false)
+    const [causes, setCauses] = useState([])
+    const [causesLoading, setCausesLoading] = useState(true)
 
     const getAuthState = async () => {
         try {
@@ -41,15 +43,37 @@ export const AppContextProvider = (props) => {
         }
     }
 
+    const fetchCauses = async () => {
+        try {
+            setCausesLoading(true)
+            const { data } = await axios.get(`${backendURL}/api/cause/all`)
+
+            if (data.success) {
+                setCauses(data.causes || [])
+            } else {
+                toast.error(data.message || 'Failed to load causes')
+            }
+        } catch (error) {
+            console.error('Error fetching causes:', error)
+            toast.error('Error loading causes')
+        } finally {
+            setCausesLoading(false)
+        }
+    }
+
     useEffect(() => {
         getAuthState()
+        fetchCauses()
     }, [])
 
     const value = {
         backendURL,
         isLoggedIn, setIsLoggedIn,
         userData, setUserData,
-        getUserData
+        getUserData,
+        causes, setCauses,
+        fetchCauses,
+        causesLoading,
     }
 
     return(

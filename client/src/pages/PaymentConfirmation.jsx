@@ -143,6 +143,14 @@ const PaymentConfirmation = () => {
             <h2 className="text-2xl font-bold mb-6 text-gray-800">Donation Details</h2>
 
             <div className="space-y-4">
+              {/* Cause */}
+              {donation.causeName && (
+                <div className="border-b pb-4">
+                  <p className="text-gray-600 text-sm font-semibold mb-1">Donation Cause</p>
+                  <p className="text-lg text-gray-800">{donation.causeName}</p>
+                </div>
+              )}
+
               {/* Transaction ID */}
               <div className="border-b pb-4">
                 <p className="text-gray-600 text-sm font-semibold mb-1">Transaction ID</p>

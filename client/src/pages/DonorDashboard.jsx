@@ -2,11 +2,12 @@ import React, { useContext, useEffect, useState, useCallback, useRef } from 'rea
 import { useNavigate } from 'react-router-dom'
 import { AppContext } from '../context/AppContext'
 import Navbar from '../components/Navbar'
+import CauseCard from '../components/CauseCard'
 import axios from 'axios'
 import { toast } from 'react-toastify'
 
 const DonorDashboard = () => {
-  const { userData, backendURL } = useContext(AppContext)
+  const { userData, backendURL, causes } = useContext(AppContext)
   const navigate = useNavigate()
   const [donations, setDonations] = useState([])
   const [totalDonated, setTotalDonated] = useState(0)
@@ -69,6 +70,10 @@ const DonorDashboard = () => {
     document.addEventListener('visibilitychange', handleVisibilityChange)
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
   }, [userData, fetchUserDonations])
+
+  const handleCauseSelect = (cause) => {
+    navigate(`/donation-payment?causeId=${cause._id}`)
+  }
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -138,13 +143,21 @@ const DonorDashboard = () => {
           </div>
         </div>
 
-        {/* Make a Donation Button */}
-        <button
-          onClick={() => navigate('/donation-payment?amount=0.50')}
-          className="bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-4 rounded mb-8 flex justify-self-center"
-        >
-          Make a Donation
-        </button>
+        {/* Choose a Cause to Donate */}
+        <div className="mb-12">
+          <h2 className="text-2xl font-semibold mb-6">Choose a Cause to Donate</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {causes.map((cause) => (
+              <CauseCard
+                key={cause._id}
+                cause={cause}
+                isClickable={true}
+                isSelected={false}
+                onClick={handleCauseSelect}
+              />
+            ))}
+          </div>
+        </div>
 
         {/* Donation History */}
         <div>
@@ -170,29 +183,41 @@ const DonorDashboard = () => {
                 : `No ${statusFilter} donations`}
             </p>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-3">
               {filteredDonations.map((donation) => (
                 <div
                   key={donation._id}
                   className={`border-2 p-4 rounded-lg cursor-pointer hover:shadow-md transition-shadow ${getStatusColor(donation.status)}`}
                   onClick={() => navigate(`/payment-confirmation/${donation._id}`)}
                 >
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <p className="text-xl font-bold">${donation.amount.toFixed(2)}</p>
-                      <p className="text-sm text-gray-600">
-                        {new Date(donation.createdAt).toLocaleDateString()}{' '}
-                        {new Date(donation.createdAt).toLocaleTimeString()}
-                      </p>
+                  <div className="flex justify-between items-center">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-4">
+                        <div>
+                          <p className="text-lg font-bold">${donation.amount.toFixed(2)}</p>
+                          <p className="text-sm text-gray-600">
+                            {new Date(donation.createdAt).toLocaleDateString()}
+                          </p>
+                        </div>
+                        {donation.causeName && (
+                          <div className="text-sm">
+                            <p className="text-gray-600 font-semibold">Cause:</p>
+                            <p className="text-gray-800 capitalize font-medium">
+                              {donation.causeName.replace(/_/g, ' ')}
+                            </p>
+                          </div>
+                        )}
+                      </div>
                     </div>
                     <span
-                      className={`px-3 py-1 rounded-full text-sm font-semibold ${getStatusBadgeColor(
+                      className={`px-3 py-1 rounded-full text-sm font-semibold whitespace-nowrap ${getStatusBadgeColor(
                         donation.status
                       )}`}
                     >
                       {donation.status.charAt(0).toUpperCase() + donation.status.slice(1)}
                     </span>
                   </div>
+                  
                   {donation.status === 'failed' && donation.failureReason && (
                     <p className="text-sm text-red-700 mt-2">Reason: {donation.failureReason}</p>
                   )}

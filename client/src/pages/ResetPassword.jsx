@@ -84,8 +84,6 @@ function ResetPassword() {
 
   return (
     <div className="flex items-center justify-center min-h-screen">
-      {/* <img src={assets.logo} alt="" className="absolute left-5 sm:left-20 top-5 w-32 sm:w-42 cursor-pointer"
-      onClick={() => navigate('/')}/> */}
       <Navbar/>
       
       {/* Enter email for reset password. */}

@@ -2,6 +2,7 @@ import React, { useContext, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { AppContext } from '../context/AppContext'
 import Navbar from '../components/Navbar'
+import CauseCard from '../components/CauseCard'
 import axios from 'axios'
 import { toast } from 'react-toastify'
 import { loadStripe } from '@stripe/stripe-js'
@@ -9,7 +10,7 @@ import { Elements, CardElement, useStripe, useElements } from '@stripe/react-str
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY)
 
-const PaymentForm = ({ amount, setAmount, userData, backendURL }) => {
+const PaymentForm = ({ amount, setAmount, userData, backendURL, selectedCause }) => {
   const stripe = useStripe()
   const elements = useElements()
   const navigate = useNavigate()
@@ -39,6 +40,11 @@ const PaymentForm = ({ amount, setAmount, userData, backendURL }) => {
       return
     }
 
+    if (!selectedCause) {
+      toast.error('Please select a cause')
+      return
+    }
+
     if (!cardholderName.trim()) {
       toast.error('Please enter cardholder name')
       return
@@ -55,7 +61,7 @@ const PaymentForm = ({ amount, setAmount, userData, backendURL }) => {
       // Step 1: Create payment intent on backend
       const paymentResponse = await axios.post(
         `${backendURL}/api/payment/create-payment-intent`,
-        { amount: parseFloat(amount), userId: userData._id },
+        { amount: parseFloat(amount), userId: userData._id, causeId: selectedCause._id },
         { withCredentials: true }
       )
 
@@ -130,7 +136,6 @@ const PaymentForm = ({ amount, setAmount, userData, backendURL }) => {
     }
   }
 
-  // List of countries
   // List of countries with their ISO 2-letter codes
   const countries = [
     { name: 'United States', code: 'US' },
@@ -292,14 +297,53 @@ const PaymentForm = ({ amount, setAmount, userData, backendURL }) => {
 }
 
 const DonationPayment = () => {
-  const { userData, backendURL } = useContext(AppContext)
+  const { userData, backendURL, causes, causesLoading } = useContext(AppContext)
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
+  const causeId = searchParams.get('causeId')
   const initialAmount = searchParams.get('amount') || '0.50'
   const [amount, setAmount] = useState(initialAmount)
+  
+  // Find the selected cause from the causes array
+  const selectedCause = causes.find(cause => cause._id === causeId)
 
   if (!userData || userData.role !== 'donor') {
     return <div>Access Denied</div>
+  }
+
+  // Show loading while causes are being fetched
+  if (causesLoading) {
+    return (
+      <div>
+        <Navbar />
+        <div className="min-h-screen bg-gray-100 p-8 flex items-center justify-center">
+          <div className="text-center">
+            <p className="text-gray-600 mb-4">Loading...</p>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // If no causeId in URL or cause not found, go back
+  if (!causeId || !selectedCause) {
+    return (
+      <div>
+        <Navbar />
+        <div className="min-h-screen bg-gray-100 p-8 flex items-center justify-center">
+          <div className="text-center">
+            <p className="text-gray-600 mb-4">Please select a cause first</p>
+            <button
+              onClick={() => navigate(-1)}
+              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded"
+            >
+              Back to Dashboard
+            </button>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -309,7 +353,7 @@ const DonationPayment = () => {
         <div className="max-w-6xl mx-auto">
           {/* Back Button */}
           <button
-            onClick={() => navigate('/donor-dashboard')}
+            onClick={() => navigate(-1)}
             className="text-blue-600 hover:text-blue-800 font-medium mb-8 flex items-center gap-2"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -319,26 +363,53 @@ const DonationPayment = () => {
           </button>
 
           {/* Main Container */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            {/* Left Side - Amount Display */}
-            <div className="flex flex-col justify-center">
-              <div className="mb-4">
-                <p className="text-gray-500 text-sm font-medium uppercase tracking-wide">Donation Amount</p>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Left Side - Selected Cause & Amount Display */}
+            <div className="lg:col-span-1 flex flex-col gap-8">
+              {/* Selected Cause Display */}
+              <div>
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">Donation Cause</h3>
+                <div className="max-w-sm">
+                  <CauseCard
+                    cause={selectedCause}
+                    isClickable={false}
+                    isSelected={false}
+                  />
+                </div>
               </div>
-              <div className="flex items-baseline gap-2">
-                <span className="text-7xl font-bold text-gray-900">${parseFloat(amount || '0').toFixed(2)}</span>
-              </div>
-              <div className="mt-8 p-6 bg-blue-50 border border-blue-100 rounded-lg">
-                <p className="text-gray-700">
-                  <span className="font-semibold">Your donation will help us make a difference.</span> Every contribution matters and goes directly towards our mission to support those in need.
-                </p>
+
+              {/* Amount Display */}
+              <div className="flex flex-col justify-center">
+                <div className="mb-4">
+                  <p className="text-gray-500 text-sm font-medium uppercase tracking-wide">Donation Amount</p>
+                </div>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-5xl font-bold text-gray-900">${parseFloat(amount || '0').toFixed(2)}</span>
+                </div>
+                <div className="mt-6 p-4 bg-green-50 border border-green-100 rounded-lg">
+                  <p className="text-gray-700 text-sm">
+                    <span className="font-semibold">Your donation will help us make a difference.</span> Every contribution matters and goes directly towards our mission to support those in need.
+                  </p>
+                </div>
+                <div className="mt-6 px-4 py-2 bg-white border border-green-100 rounded-lg">
+                  <p className="text-gray-900 text-lg">Test Card Numbers:</p>
+                  <p className="text-gray-800 text-sm">Successfull Payment: 4242 4242 4242 4242</p>
+                  <p className="text-gray-800 text-sm">Insufficient Funds: 4000 0000 0000 9995</p>
+                  <p className="text-gray-800 text-sm">For more test card details: <a href="https://docs.stripe.com/testing" target="blank" className="text-blue-400 hover:text-blue-600 hover:underline hover:underline-offset-2">click here</a></p>
+                </div>
               </div>
             </div>
 
             {/* Right Side - Payment Form */}
-            <div className="bg-white rounded-2xl shadow-lg p-8">
+            <div className="lg:col-span-2 bg-white rounded-2xl shadow-lg p-8">
               <Elements stripe={stripePromise}>
-                <PaymentForm amount={amount} setAmount={setAmount} userData={userData} backendURL={backendURL} />
+                <PaymentForm 
+                  amount={amount} 
+                  setAmount={setAmount} 
+                  userData={userData} 
+                  backendURL={backendURL}
+                  selectedCause={selectedCause}
+                />
               </Elements>
             </div>
           </div>

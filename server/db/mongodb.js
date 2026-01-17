@@ -8,7 +8,7 @@ const connectDB = async () => {
 		)
 		console.log(
 			`MongoDB connected. DB Host: ${connectionInstance.connection.host}`
-		)			// Connection host doesn't carry any sensitive info, its just the DNS.
+		)
 	} catch (error) {
 		console.log(
 			'MongoDB connection error. Error code: ',
