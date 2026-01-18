@@ -75,9 +75,10 @@ function Login() {
   }, [isLoggedIn, userData])
 
   return (
-    <div className="flex items-center justify-center min-h-screen px-6 sm:px-0">
-      <Navbar/>
-      <div className="bg-slate-900 p-10 rounded-lg shadow-lg w-full sm:w-96 text-indigo-300 text-sm">
+    <div style={{ backgroundImage: `url(${assets.bg_img})` }} className="min-h-screen bg-cover bg-center">
+    <Navbar/>
+    <div className="flex mt-8 items-center justify-center px-6 sm:px-0">
+      <div className="bg-slate-900 p-10 rounded-3xl shadow-lg w-full sm:w-96 text-indigo-300 text-sm">
         <h2 className="text-3xl font-semibold text-white text-center mb-3">
           {state === 'Sign Up' ? 'Create Account' : 'Login'}</h2>
         <p className="text-center text-md mb-6">
@@ -112,7 +113,7 @@ function Login() {
               <span className="flex items-center w-full">
                 <span className="flex-1">Login as:</span>
                 <div className="flex-1 text-center font-bold">{role}</div>
-                <span className="flex-1"></span> {/* Empty spacer to balance the left side */}
+                <span className="flex-1"></span>
               </span>
               <img src={assets.arrow_icon} alt="" className={`transition-transform ${isOpen ? 'rotate-180' : ''}`} />
             </div>
@@ -130,17 +131,18 @@ function Login() {
 
         {state === 'Sign Up' ? (
           <p
-            className="whitespace-pre text-gray-400 text-center text-xs mt-4">Already have an account?{'    '}
-            <span onClick={() => setState('Login')} className="text-blue-400 cursor-pointer underline">Login Here</span>
+            className="whitespace-pre text-gray-400 text-center text-sm mt-4">Already have an account?{'    '}
+            <span onClick={() => setState('Login')} className="text-blue-400 cursor-pointer hover:underline hover:underline-offset-2 hover:text-blue-600">Login Here</span>
           </p>
         ) : (
           <p
-            className="whitespace-pre text-gray-400 text-center text-xs mt-4">Don't have an account?{'    '}
-            <span onClick={() => setState('Sign Up')} className="text-blue-400 cursor-pointer underline">Sign Up</span>
+            className="whitespace-pre text-gray-400 text-center text-sm mt-4">Don't have an account?{'    '}
+            <span onClick={() => setState('Sign Up')} className="text-blue-400 cursor-pointer hover:underline hover:underline-offset-2 hover:text-blue-600">Sign Up</span>
           </p>
         ) }
 
       </div>
+    </div>
     </div>
   )
 }
