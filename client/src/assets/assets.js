@@ -1,9 +1,9 @@
 import arrow_icon from './arrow_icon.svg'
 import lock_icon from './lock_icon.svg'
-import logo from './logo.png'
+import logo from './ngo_logo.png'
 import mail_icon from './mail_icon.svg'
 import person_icon from './person_icon.svg'
-import bg_img from './bg_img.jpg'
+import bg_img from './ngo_bg_img.jpg'
 
 export const assets = {
     arrow_icon,
