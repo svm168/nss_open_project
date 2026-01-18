@@ -121,7 +121,6 @@ const DonorDashboard = () => {
       <Navbar />
       <div className="min-h-screen bg-gray-100 p-8">
         <h1 className="text-3xl font-bold mb-4">Donor Dashboard</h1>
-        <p className="text-gray-600 mb-8">Welcome, {userData.name}! Manage your donations below.</p>
 
         {/* Donation Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
@@ -161,7 +160,7 @@ const DonorDashboard = () => {
 
         {/* Donation History */}
         <div>
-          <div className="flex justify-between items-center mb-6">
+          <div className="flex justify-between items-center mb-6 mx-12">
             <h2 className="text-2xl font-semibold">Donation History</h2>
             <select
               value={statusFilter}
@@ -187,20 +186,20 @@ const DonorDashboard = () => {
               {filteredDonations.map((donation) => (
                 <div
                   key={donation._id}
-                  className={`border-2 p-4 rounded-lg cursor-pointer hover:shadow-md transition-shadow ${getStatusColor(donation.status)}`}
+                  className={`border-2 p-4 mx-20 rounded-lg cursor-pointer hover:shadow-md transition-shadow ${getStatusColor(donation.status)}`}
                   onClick={() => navigate(`/payment-confirmation/${donation._id}`)}
                 >
                   <div className="flex justify-between items-center">
                     <div className="flex-1">
                       <div className="flex items-center gap-4">
-                        <div>
+                        <div className='ml-4'>
                           <p className="text-lg font-bold">${donation.amount.toFixed(2)}</p>
                           <p className="text-sm text-gray-600">
                             {new Date(donation.createdAt).toLocaleDateString()}
                           </p>
                         </div>
                         {donation.causeName && (
-                          <div className="text-sm">
+                          <div className="ml-4 flex gap-x-4">
                             <p className="text-gray-600 font-semibold">Cause:</p>
                             <p className="text-gray-800 capitalize font-medium">
                               {donation.causeName.replace(/_/g, ' ')}
@@ -210,7 +209,7 @@ const DonorDashboard = () => {
                       </div>
                     </div>
                     <span
-                      className={`px-3 py-1 rounded-full text-sm font-semibold whitespace-nowrap ${getStatusBadgeColor(
+                      className={`px-3 py-1 rounded-full mr-4 font-semibold whitespace-nowrap ${getStatusBadgeColor(
                         donation.status
                       )}`}
                     >
