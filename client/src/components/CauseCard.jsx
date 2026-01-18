@@ -2,20 +2,18 @@ import React from 'react'
 
 const CauseCard = ({ cause, isClickable = false, isSelected = false, onClick = null }) => {
 	const handleClick = () => {
-		if (isClickable && onClick) {
+		if(isClickable && onClick){
 			onClick(cause)
 		}
 	}
 
 	// Handle both uploaded images and image URLs
 	const getImageUrl = () => {
-		if (!cause.image) {
-			return null
-		}
+		if(!cause.image) return null
+
 		// If it starts with http/https, it's a URL
-		if (cause.image.startsWith('http')) {
-			return cause.image
-		}
+		if(cause.image.startsWith('http')) return cause.image
+
 		// Otherwise, it's a filename from uploads
 		return `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000'}/uploads/${cause.image}`
 	}
@@ -23,23 +21,11 @@ const CauseCard = ({ cause, isClickable = false, isSelected = false, onClick = n
 	const imageUrl = getImageUrl()
 
 	return (
-		<div
-			onClick={handleClick}
-			className={`rounded-lg overflow-hidden shadow-lg transition-all ${
-				isClickable
-					? 'cursor-pointer hover:shadow-xl hover:scale-105'
-					: ''
-			} ${
-				isSelected
-					? 'ring-4 ring-green-500 scale-105'
-					: ''
-			} ${
-				isClickable && !isSelected
-					? 'bg-white'
-					: isSelected
-					? 'bg-green-50'
-					: 'bg-white'
-			}`}
+		<div onClick={handleClick}
+			className={`rounded-lg overflow-hidden shadow-lg transition-all
+				${ isClickable ? 'cursor-pointer hover:shadow-xl hover:scale-105' : '' }
+				${ isSelected ? 'ring-4 ring-green-500 scale-105' : '' }
+				${ isClickable && !isSelected ? 'bg-white' : (isSelected ? 'bg-green-50': 'bg-white')}`}
 		>
 			{/* Image Container */}
 			<div className="relative w-full h-48 overflow-hidden bg-gray-200">

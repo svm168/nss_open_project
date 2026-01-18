@@ -23,14 +23,12 @@ const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('donations')
   const [exportMenuOpen, setExportMenuOpen] = useState(false)
   
-  // Users state
   const [donors, setDonors] = useState([])
   
-  // Cause form states
   const [showCauseForm, setShowCauseForm] = useState(false)
   const [causeName, setCauseName] = useState('')
-  const [causeImage, setCauseImage] = useState(null) // Changed to null for file
-  const [causeImagePreview, setCauseImagePreview] = useState(null) // Preview URL
+  const [causeImage, setCauseImage] = useState(null)
+  const [causeImagePreview, setCauseImagePreview] = useState(null)
   const [causeDescription, setCauseDescription] = useState('')
   const [creatingCause, setCreatingCause] = useState(false)
 
@@ -40,7 +38,6 @@ const AdminDashboard = () => {
     }
   }, [userData, navigate])
 
-  // Fetch all donations on component mount
   useEffect(() => {
     if (userData && userData._id) {
       fetchAllDonations()
@@ -189,19 +186,6 @@ const AdminDashboard = () => {
     }
   }
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'success':
-        return 'bg-green-50 border-green-200'
-      case 'pending':
-        return 'bg-yellow-50 border-yellow-200'
-      case 'failed':
-        return 'bg-red-50 border-red-200'
-      default:
-        return 'bg-gray-50 border-gray-200'
-    }
-  }
-
   const getStatusBadgeColor = (status) => {
     switch (status) {
       case 'success':
@@ -215,7 +199,6 @@ const AdminDashboard = () => {
     }
   }
 
-  // Export functions
   const exportToCSV = () => {
     if (donors.length === 0) {
       toast.error('No donors data to export')
@@ -290,11 +273,25 @@ const AdminDashboard = () => {
   }
 
   return (
-    <div>
+    <div className='bg-gray-100 min-h-screen'>
+      <style>{`
+        @keyframes slideDown {
+          from {
+            opacity: 0;
+            transform: translateY(-20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        .animate-slide-down {
+          animation: slideDown 0.3s ease-in forwards;
+        }
+      `}</style>
       <Navbar />
-      <div className="min-h-screen bg-gray-100 p-8">
-        <h1 className="text-3xl font-bold mb-4">Admin Dashboard</h1>
-        <p className="text-gray-600 mb-8">Welcome, {userData.name}! Manage all system donations and causes.</p>
+      <div className="px-8 pb-8 pt-4">
+        <h1 className="text-3xl font-bold mb-1">Admin Dashboard</h1>
 
         {/* Tab Navigation */}
         <div className="flex gap-4 mb-8 border-b">
@@ -364,7 +361,7 @@ const AdminDashboard = () => {
               <select
                 value={filterCause}
                 onChange={(e) => setFilterCause(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-600"
+                className="px-4 py-2 border border-gray-400 rounded-md focus:outline-none focus:border-blue-600 cursor-pointer hover:border-blue-400"
               >
                 <option value="all">All Causes</option>
                 {uniqueCauses.map((cause) => (
@@ -376,7 +373,7 @@ const AdminDashboard = () => {
               <select
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-600"
+                className="px-4 py-2 border border-gray-400 rounded-md focus:outline-none focus:border-blue-600 cursor-pointer hover:border-blue-400"
               >
                 <option value="all">All Donations</option>
                 <option value="success">Successful Only</option>
@@ -385,14 +382,14 @@ const AdminDashboard = () => {
               </select>
               <button
                 onClick={fetchAllDonations}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                className="bg-blue-600 hover:bg-blue-700 text-white hover:text-gray-100 font-bold py-2 px-4 rounded cursor-pointer"
               >
                 Refresh
               </button>
             </div>
 
             {/* Donations List */}
-            <div>
+            <div className='px-8'>
               <h2 className="text-2xl font-semibold mb-4">
                 All Donations ({filteredDonations.length})
               </h2>
@@ -490,7 +487,7 @@ const AdminDashboard = () => {
               <h2 className="text-2xl font-semibold">Available Causes ({causes.length})</h2>
               <button
                 onClick={() => setShowCauseForm(!showCauseForm)}
-                className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded"
+                className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg cursor-pointer"
               >
                 {showCauseForm ? 'Cancel' : 'Add New Cause'}
               </button>
@@ -498,7 +495,7 @@ const AdminDashboard = () => {
 
             {/* Add Cause Form */}
             {showCauseForm && (
-              <div className="bg-white p-8 rounded-lg shadow mb-8">
+              <div className="bg-white p-8 mr-8 px-12 rounded-lg shadow mb-8 w-2xl justify-self-end animate-slide-down">
                 <h3 className="text-xl font-semibold mb-6">Create New Cause</h3>
                 <form onSubmit={handleCreateCause} className="space-y-4">
                   <div>
@@ -509,8 +506,8 @@ const AdminDashboard = () => {
                       type="text"
                       value={causeName}
                       onChange={(e) => setCauseName(e.target.value)}
-                      placeholder="e.g., Medical Relief"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-green-500"
+                      placeholder="e.g. Medical Relief"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
                       disabled={creatingCause}
                     />
                   </div>
@@ -538,7 +535,7 @@ const AdminDashboard = () => {
                           </button>
                         </div>
                       ) : (
-                        <label className="flex items-center justify-center w-full px-4 py-6 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition">
+                        <label className="flex items-center justify-center w-full px-4 py-12 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition">
                           <div className="text-center">
                             <svg className="mx-auto h-8 w-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -566,8 +563,8 @@ const AdminDashboard = () => {
                       value={causeDescription}
                       onChange={(e) => setCauseDescription(e.target.value)}
                       placeholder="Describe this cause..."
-                      rows="4"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-green-500"
+                      rows="1"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
                       disabled={creatingCause}
                     />
                   </div>
@@ -575,7 +572,7 @@ const AdminDashboard = () => {
                   <button
                     type="submit"
                     disabled={creatingCause}
-                    className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-bold py-2 px-6 rounded"
+                    className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg cursor-pointer"
                   >
                     {creatingCause ? 'Creating...' : 'Create Cause'}
                   </button>
@@ -616,7 +613,7 @@ const AdminDashboard = () => {
                 <div className="relative">
                   <button
                     onClick={() => setExportMenuOpen(!exportMenuOpen)}
-                    className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded flex items-center gap-2"
+                    className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded flex items-center gap-2 cursor-pointer"
                   >
                     <svg
                       className="w-5 h-5"
@@ -657,7 +654,7 @@ const AdminDashboard = () => {
                   )}
                 </div>
               </div>
-              <div className="bg-white rounded-lg shadow p-6 mb-6">
+              <div className="bg-white rounded-lg shadow p-6 mb-6 mx-12">
                 <div className="flex items-center gap-4">
                   <div className="text-2xl">Total Donor Registrations: </div>
                   <div className="text-4xl font-bold text-purple-600">{donors.length}</div>
@@ -666,7 +663,7 @@ const AdminDashboard = () => {
             </div>
 
             {/* Users Table */}
-            <div className="bg-white rounded-lg shadow overflow-hidden">
+            <div className="bg-white rounded-lg shadow overflow-hidden mx-12">
               {donors.length === 0 ? (
                 <div className="p-8 text-center text-gray-500">
                   <p>No donors found</p>
