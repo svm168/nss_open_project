@@ -4,7 +4,7 @@ import jwt from 'jsonwebtoken'
 import User from '../models/user.model.js'
 import transporter from '../config/nodemailer.config.js'
 
-import { Email_vefify_template, Password_reset_template } from '../config/emailTemplate.config.js'
+import { Email_vefify_template, Password_reset_template, Admin_approval_request_template, Admin_approval_notification_template } from '../config/emailTemplate.config.js'
 
 export const register = async (req, res) => {
 	const { name, email, password, role } = req.body
@@ -69,6 +69,19 @@ export const login = async (req, res) => {
 			return res.json({
 				success: false,
 				message: 'Invalid E-mail or Password.',
+			})
+		}
+
+		if(role === 'admin' && user.adminApprovalStatus === 'pending') {
+			return res.json({
+				success: false,
+				message: 'Your admin access is pending approval from the owner. Please wait for confirmation.',
+			})
+		}
+		if(role === 'admin' && user.adminApprovalStatus === 'denied') {
+			return res.json({
+				success: false,
+				message: 'Your admin access request has been denied. Please contact the owner for more information.',
 			})
 		}
 
@@ -204,9 +217,51 @@ export const verifyEmail = async (req, res) => {
 		user.registeredDate = new Date()
 		user.verifyOTP = ''
 		user.verifyOTPExpireAt = 0
+
+		// If user is registering as admin, set approval status to pending
+		if(user.role === 'admin') {
+			user.adminApprovalStatus = 'pending'
+		}
+
 		await user.save()
 
-		// Send welcome email after email verification is completed
+		// If admin, send approval request to owner
+		if(user.role === 'admin') {
+			const ownerEmail = process.env.OWNER_EMAIL
+			if(ownerEmail) {
+				const approvalToken = jwt.sign({ userId: user._id, action: 'approve' }, process.env.JWT_SEC_KEY, {
+					expiresIn: '30d',
+				})
+				const denialToken = jwt.sign({ userId: user._id, action: 'deny' }, process.env.JWT_SEC_KEY, {
+					expiresIn: '30d',
+				})
+
+				const appUrl = process.env.CLIENT_URL || 'http://localhost:5173'
+				const approveLink = `${appUrl}/admin-approval?token=${approvalToken}`
+				const denyLink = `${appUrl}/admin-approval?token=${denialToken}`
+
+				const mailOptions = {
+					from: process.env.SENDER_EMAIL,
+					to: ownerEmail,
+					subject: 'New Admin Access Request',
+					html: Admin_approval_request_template
+						.replace("{{name}}", user.name)
+						.replace("{{email}}", user.email)
+						.replace("{{appliedDate}}", new Date().toLocaleString())
+						.replace("{{approveLink}}", approveLink)
+						.replace("{{denyLink}}", denyLink)
+				}
+
+				try {
+					await transporter.sendMail(mailOptions)
+				} catch (emailError) {
+					console.error('Error sending admin approval request email:', emailError)
+				}
+			}
+
+			return res.json({ success: true, message: 'E-mail verified successfully. Waiting for admin approval.' })
+		}
+
 		const mailOptions = {
 			from: process.env.SENDER_EMAIL,
 			to: user.email,
@@ -218,7 +273,6 @@ export const verifyEmail = async (req, res) => {
 			await transporter.sendMail(mailOptions)
 		} catch (emailError) {
 			console.error('Error sending welcome email:', emailError)
-			// Don't fail the verification if welcome email fails
 		}
 
 		return res.json({ success: true, message: 'E-mail verified successfully.' })
@@ -297,6 +351,113 @@ export const resetPassword = async (req, res) => {
 		await user.save()
 
 		return res.json({ success: true, message: 'Password reset successfully.' })
+	} catch (error) {
+		return res.json({ success: false, message: error.message })
+	}
+}
+
+export const approveAdmin = async (req, res) => {
+	try {
+		const { token } = req.body
+
+		if(!token) {
+			return res.json({ success: false, message: 'Token is required.' })
+		}
+
+		let decoded
+		try {
+			decoded = jwt.verify(token, process.env.JWT_SEC_KEY)
+		} catch (error) {
+			return res.json({ success: false, message: 'Invalid or expired token.' })
+		}
+
+		if(decoded.action !== 'approve') {
+			return res.json({ success: false, message: 'Invalid token.' })
+		}
+
+		const user = await User.findById(decoded.userId)
+
+		if(!user) {
+			return res.json({ success: false, message: 'User not found.' })
+		}
+
+		if(user.role !== 'admin') {
+			return res.json({ success: false, message: 'This user is not an admin applicant.' })
+		}
+
+		user.adminApprovalStatus = 'approved'
+		user.approvedDate = new Date()
+		await user.save()
+
+		const mailOptions = {
+			from: process.env.SENDER_EMAIL,
+			to: user.email,
+			subject: 'Admin Access Approved',
+			html: Admin_approval_notification_template
+				.replace("{{status}}", 'Admin Access Approved ✓')
+				.replace("{{message}}", `Congratulations! Your admin access has been approved. You can now log in and start managing the platform.`)
+		}
+
+		try {
+			await transporter.sendMail(mailOptions)
+		} catch (emailError) {
+			console.error('Error sending approval notification email:', emailError)
+		}
+
+		return res.json({ success: true, message: 'Admin has been approved successfully.' })
+	} catch (error) {
+		return res.json({ success: false, message: error.message })
+	}
+}
+
+export const denyAdmin = async (req, res) => {
+	try {
+		const { token } = req.body
+
+		if(!token) {
+			return res.json({ success: false, message: 'Token is required.' })
+		}
+
+		let decoded
+		try {
+			decoded = jwt.verify(token, process.env.JWT_SEC_KEY)
+		} catch (error) {
+			return res.json({ success: false, message: 'Invalid or expired token.' })
+		}
+
+		if(decoded.action !== 'deny') {
+			return res.json({ success: false, message: 'Invalid token.' })
+		}
+
+		const user = await User.findById(decoded.userId)
+
+		if(!user) {
+			return res.json({ success: false, message: 'User not found.' })
+		}
+
+		if(user.role !== 'admin') {
+			return res.json({ success: false, message: 'This user is not an admin applicant.' })
+		}
+
+		user.adminApprovalStatus = 'denied'
+		await user.save()
+
+		const mailOptions = {
+			from: process.env.SENDER_EMAIL,
+			to: user.email,
+			subject: 'Admin Access Denied',
+			html: Admin_approval_notification_template
+				.replace("{{status}}", 'Admin Access Denied')
+				.replace("{{message}}", `Your admin access request has been denied. If you have questions, please contact the owner.`)
+		}
+
+		try {
+			await transporter.sendMail(mailOptions)
+		} catch (emailError) {
+			console.error('Error sending denial notification email:', emailError)
+		}
+
+		return res.json({ success: true, message: 'Admin request has been denied.' })
 	} catch (error) {
 		return res.json({ success: false, message: error.message })
 	}

@@ -15,6 +15,9 @@ const userSchema = mongoose.Schema({
 	resetOTP: { type: String, default: '' },
 	resetOPTExpireAt: { type: Number, default: 0 },
 
+	adminApprovalStatus: { type: String, enum: ['pending', 'approved', 'denied'], default: 'pending' },
+	approvedDate: { type: Date, default: null },
+
 	donations: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Donation' }],
 	totalDonated: { type: Number, default: 0 },
 })

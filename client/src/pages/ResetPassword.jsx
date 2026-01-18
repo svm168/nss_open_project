@@ -83,8 +83,9 @@ function ResetPassword() {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen">
-      <Navbar/>
+    <div style={{ backgroundImage: `url(${assets.bg_img})` }} className="min-h-screen bg-cover bg-center">
+    <Navbar/>
+    <div className="flex items-center justify-center mt-30">
       
       {/* Enter email for reset password. */}
       {!isEmailSent &&
@@ -131,6 +132,7 @@ function ResetPassword() {
         </form>
       }
       
+    </div>
     </div>
   )
 }

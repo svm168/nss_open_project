@@ -9,6 +9,8 @@ import DonorDashboard from "./pages/DonorDashboard.jsx"
 import DonationPayment from "./pages/DonationPayment.jsx"
 import AdminDashboard from "./pages/AdminDashboard.jsx"
 import PaymentConfirmation from "./pages/PaymentConfirmation.jsx"
+import AdminApproval from "./pages/AdminApproval.jsx"
+import WaitingForApproval from "./pages/WaitingForApproval.jsx"
 import { ToastContainer } from 'react-toastify'
 import { AppContext } from './context/AppContext'
 
@@ -18,8 +20,20 @@ function AppContent() {
   const location = useLocation()
 
   useEffect(() => {
-    if (isLoggedIn && userData && !userData.isAccountVerified && location.pathname !== '/email-verify') {
+    if (!isLoggedIn) return
+
+    if (userData && !userData.isAccountVerified && location.pathname !== '/email-verify') {
       navigate('/email-verify')
+      return
+    }
+
+    // If admin but not approved, redirect to waiting page (unless on admin-approval page)
+    if (userData && userData.role === 'admin' && location.pathname !== '/admin-approval') {
+      if (userData.adminApprovalStatus !== 'approved') {
+        if (location.pathname !== '/waiting-for-approval') {
+          navigate('/waiting-for-approval')
+        }
+      }
     }
   }, [isLoggedIn, userData, location.pathname, navigate])
 
@@ -34,6 +48,8 @@ function AppContent() {
       <Route path="/donation-payment" element={<DonationPayment/>}/>
       <Route path="/payment-confirmation/:donationId" element={<PaymentConfirmation/>}/>
       <Route path="/admin-dashboard" element={<AdminDashboard/>}/>
+      <Route path="/admin-approval" element={<AdminApproval/>}/>
+      <Route path="/waiting-for-approval" element={<WaitingForApproval/>}/>
     </Routes>
   )
 }

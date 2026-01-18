@@ -22,7 +22,8 @@ export const AppContextProvider = (props) => {
                 getUserData()
             }
         } catch (error) {
-            toast.error(error.message)
+            // User is not logged in, which is expected. No need to show toast error.
+            setIsLoggedIn(false)
         }
     }
 

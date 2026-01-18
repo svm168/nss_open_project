@@ -48,33 +48,23 @@ const PaymentConfirmation = () => {
   }
 
   const getStatusColor = (status) => {
-    switch (status) {
-      case 'success':
-        return 'text-green-600'
-      case 'pending':
-        return 'text-yellow-600'
-      case 'failed':
-        return 'text-red-600'
-      default:
-        return 'text-gray-600'
-    }
+    if(status === 'success') return 'text-green-600'
+    else if(status === 'pending') return 'text-yellow-600'
+    else if(status === 'failed') return 'text-red-600'
+    else return 'text-gray-600'
   }
 
   const getStatusIcon = (status) => {
-    switch (status) {
-      case 'success':
-        return '✓'
-      case 'pending':
-        return '⏳'
-      case 'failed':
-        return '✗'
-      default:
-        return '•'
-    }
+    if(status === 'success') return '✓'
+    else if(status === 'pending') return '⏳'
+    else if(status === 'failed') return '✗'
+    else return '•'
   }
 
   if (!userData || userData.role !== 'donor') {
-    return <div>Access Denied</div>
+    return (
+      <div>Access Denied</div>
+    )
   }
 
   if (loading) {
@@ -111,7 +101,7 @@ const PaymentConfirmation = () => {
         <div className="max-w-2xl mx-auto">
           {/* Status Banner */}
           <div
-            className={`mb-8 p-6 rounded-lg text-center ${
+            className={`mb-8 p-2 rounded-lg text-center ${
               donation.status === 'success'
                 ? 'bg-green-50 border-2 border-green-200'
                 : donation.status === 'failed'
@@ -143,7 +133,6 @@ const PaymentConfirmation = () => {
             <h2 className="text-2xl font-bold mb-6 text-gray-800">Donation Details</h2>
 
             <div className="space-y-4">
-              {/* Cause */}
               {donation.causeName && (
                 <div className="border-b pb-4">
                   <p className="text-gray-600 text-sm font-semibold mb-1">Donation Cause</p>
@@ -151,13 +140,11 @@ const PaymentConfirmation = () => {
                 </div>
               )}
 
-              {/* Transaction ID */}
               <div className="border-b pb-4">
                 <p className="text-gray-600 text-sm font-semibold mb-1">Transaction ID</p>
                 <p className="text-lg font-mono text-gray-800">{donation._id}</p>
               </div>
 
-              {/* Amount */}
               <div className="border-b pb-4">
                 <p className="text-gray-600 text-sm font-semibold mb-1">Amount Donated</p>
                 <p className="text-3xl font-bold text-green-600">
@@ -165,13 +152,11 @@ const PaymentConfirmation = () => {
                 </p>
               </div>
 
-              {/* Donor Name */}
               <div className="border-b pb-4">
                 <p className="text-gray-600 text-sm font-semibold mb-1">Donor Name</p>
                 <p className="text-lg text-gray-800">{userData.name}</p>
               </div>
 
-              {/* Status */}
               <div className="border-b pb-4">
                 <p className="text-gray-600 text-sm font-semibold mb-1">Payment Status</p>
                 <span
@@ -187,19 +172,16 @@ const PaymentConfirmation = () => {
                 </span>
               </div>
 
-              {/* Payment Method */}
               <div className="border-b pb-4">
                 <p className="text-gray-600 text-sm font-semibold mb-1">Payment Method</p>
                 <p className="text-lg text-gray-800 capitalize">{donation.paymentMethod}</p>
               </div>
 
-              {/* Currency */}
               <div className="border-b pb-4">
                 <p className="text-gray-600 text-sm font-semibold mb-1">Currency</p>
                 <p className="text-lg text-gray-800 uppercase">{donation.currency}</p>
               </div>
 
-              {/* Date & Time */}
               <div className="border-b pb-4">
                 <p className="text-gray-600 text-sm font-semibold mb-1">Date & Time</p>
                 <p className="text-lg text-gray-800">
@@ -208,7 +190,6 @@ const PaymentConfirmation = () => {
                 </p>
               </div>
 
-              {/* Stripe Payment Intent ID */}
               {donation.stripePaymentIntentId && (
                 <div className="pb-4">
                   <p className="text-gray-600 text-sm font-semibold mb-1">Stripe Payment ID</p>
@@ -216,7 +197,6 @@ const PaymentConfirmation = () => {
                 </div>
               )}
 
-              {/* Failure Reason */}
               {donation.status === 'failed' && donation.failureReason && (
                 <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded">
                   <p className="text-gray-600 text-sm font-semibold mb-1">Failure Reason</p>
@@ -226,11 +206,10 @@ const PaymentConfirmation = () => {
             </div>
           </div>
 
-          {/* Action Buttons */}
           <div className="flex gap-4 justify-center">
             <button
               onClick={() => navigate('/donor-dashboard')}
-              className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded"
+              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg cursor-pointer"
             >
               Back to Dashboard
             </button>

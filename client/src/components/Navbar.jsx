@@ -11,24 +11,6 @@ function Navbar() {
     const location = useLocation()
     const { userData, backendURL, setUserData, setIsLoggedIn } = useContext(AppContext)
 
-    const sendVerificationOTP = async () => {
-        try {
-            axios.defaults.withCredentials = true
-
-            const { data } = await axios.post(backendURL + '/api/auth/send-verify-otp')
-
-            if(data.success){
-                navigate('/email-verify')
-                toast.success(data.message)
-            }
-            else{
-                toast.error(data.message)
-            }
-        } catch (error) {
-            toast.error(error.message)
-        }
-    }
-
     const logout = async () => {
         try {
             axios.defaults.withCredentials = true
@@ -45,23 +27,24 @@ function Navbar() {
     }
 
     return(
-        <div className="flex flex-col absolute top-0 w-full">
-        <div className="bg-blue-600 w-full flex justify-between">
-            <div>Phone: +91-1234567890</div>
+        <div className="flex flex-col sticky top-0 w-full z-100">
+        <div className="bg-blue-600 w-full flex gap-x-8">
+            <div className="ml-6">Phone: +91-8299692198</div>
+            <div>E-mail: shivam_kj@ece.iitr.ac.in</div>
         </div>
-        <div className="w-full flex justify-between items-center sm:px-24 bg-blue-400">
+        <div className="w-full flex justify-between items-center sm:px-24 bg-gray-800">
             <div className="flex flex-row">
-                <img src={assets.logo} alt="" className="w-12 sm:w-22"/>
-                <div className="self-center pl-4 text-2xl">DONATION TRACKING SYSTEM</div>
+                <img src={assets.logo} alt="" className="w-12 sm:w-22 bg-white/80 rounded-full my-2"/>
+                <div className="self-center pl-8 text-4xl text-white">DONATION MANAGEMENT SYSTEM</div>
             </div>
 
             {userData ? 
-                <div className="w-11 h-11 flex justify-center items-center rounded-full bg-slate-700 text-white relative group text-xl">
+                <div className="w-11 h-11 flex justify-center items-center rounded-full text-black font-bold bg-blue-500 relative group text-xl">
                     {userData.name[0].toUpperCase()}
                     <div className="absolute hidden group-hover:block top-0 mt-1 right-0 z-10 text-white pt-10">
                         <ul className="list-none m-0 p-2 bg-black text-sm rounded-lg">
-                            <li onClick={() => navigate('/profile')} className="py-1 px-2 hover:bg-gray-700 cursor-pointer rounded-t-lg">Profile</li>
-                            <li onClick={logout} className="py-1 px-2 hover:bg-gray-700 cursor-pointer pr-10 rounded-b-lg">Logout</li>
+                            <li onClick={() => navigate('/profile')} className="py-1 px-2 hover:bg-gray-700 cursor-pointer rounded-t-lg font-medium">Profile</li>
+                            <li onClick={logout} className="py-1 px-2 hover:bg-gray-700 cursor-pointer pr-10 rounded-b-lg font-medium">Logout</li>
                         </ul>
                     </div>
                 </div>

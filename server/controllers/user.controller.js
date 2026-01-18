@@ -15,14 +15,14 @@ export const getUserData = async (req, res) => {
             name: user.name,
             email: user.email,      // sending email also to show in profile page
             isAccountVerified: user.isAccountVerified,
-            role: user.role
+            role: user.role,
+            adminApprovalStatus: user.adminApprovalStatus
         }})
     } catch (error) {
         return res.json({ success: false, message: error.message})
     }
 }
 
-// Get all users with donor role (Admin only)
 export const getAllDonors = async (req, res) => {
     try {
         const donors = await User.find({ role: 'donor' }).select('_id name email isAccountVerified registeredDate')
