@@ -1,12 +1,15 @@
 import React from "react"
 import Navbar from "../components/Navbar.jsx"
 import Header from "../components/Header.jsx"
+import { assets } from "../assets/assets"
 
 function Home() {
-  return (                                                          // The bg_img.png below is from public folder.
-    <div className="flex flex-col items-center justify-center min-h-screen bg-[url('/bg_img.jpg')] bg-cover bg-center">
+  return (
+    <div style={{ backgroundImage: `url(${assets.bg_img})` }} className="min-h-screen bg-cover bg-center">
       <Navbar/>
-      <Header/>
+      <div className="flex flex-col items-center justify-center">
+        <Header/>
+      </div>
     </div>
   )
 }

@@ -58,7 +58,7 @@ const PaymentForm = ({ amount, setAmount, userData, backendURL, selectedCause })
     setProcessing(true)
 
     try {
-      // Step 1: Create payment intent on backend
+      // Step-1: Create payment intent on backend
       const paymentResponse = await axios.post(
         `${backendURL}/api/payment/create-payment-intent`,
         { amount: parseFloat(amount), userId: userData._id, causeId: selectedCause._id },
@@ -74,7 +74,7 @@ const PaymentForm = ({ amount, setAmount, userData, backendURL, selectedCause })
       const { clientSecret, donationId } = paymentResponse.data
       const cardElement = elements.getElement(CardElement)
 
-      // Step 2: Confirm payment with Stripe
+      // Step-2: Confirm payment with Stripe
       const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
         payment_method: {
           card: cardElement,
@@ -89,7 +89,6 @@ const PaymentForm = ({ amount, setAmount, userData, backendURL, selectedCause })
       })
 
       if (error) {
-        // Mark donation as failed on backend
         await axios.post(
           `${backendURL}/api/payment/confirm-payment`,
           {
@@ -102,7 +101,6 @@ const PaymentForm = ({ amount, setAmount, userData, backendURL, selectedCause })
         )
 
         toast.error(`Payment failed: ${error.message}`)
-        // Redirect to payment confirmation page with failed status
         setTimeout(() => {
           navigate(`/payment-confirmation/${donationId}`)
         }, 1000)
@@ -110,7 +108,7 @@ const PaymentForm = ({ amount, setAmount, userData, backendURL, selectedCause })
         return
       }
 
-      // Step 3: Confirm payment on backend
+      // Step-3: Confirm payment on backend
       if (paymentIntent) {
         const confirmResponse = await axios.post(
           `${backendURL}/api/payment/confirm-payment`,
@@ -120,7 +118,6 @@ const PaymentForm = ({ amount, setAmount, userData, backendURL, selectedCause })
 
         if (confirmResponse.data.success) {
           toast.success('Donation processed! Redirecting to confirmation...')
-          // Navigate to payment confirmation page
           setTimeout(() => {
             navigate(`/payment-confirmation/${donationId}`)
           }, 1000)
@@ -136,7 +133,7 @@ const PaymentForm = ({ amount, setAmount, userData, backendURL, selectedCause })
     }
   }
 
-  // List of countries with their ISO 2-letter codes
+  // List of countries with their ISO 2-letter codes:
   const countries = [
     { name: 'United States', code: 'US' },
     { name: 'United Kingdom', code: 'GB' },
@@ -161,10 +158,9 @@ const PaymentForm = ({ amount, setAmount, userData, backendURL, selectedCause })
   ].sort((a, b) => a.name.localeCompare(b.name))
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Header */}
-      <div className="mb-8 flex justify-center">
-        <p className="text-gray-300 text-sm font-medium tracking-wide">Pay by card</p>
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="mb-4 flex justify-center">
+        <p className="text-gray-300 text-md font-medium tracking-wide">Pay by card</p>
       </div>
 
       {/* Amount Input */}
@@ -182,8 +178,8 @@ const PaymentForm = ({ amount, setAmount, userData, backendURL, selectedCause })
           required
         />
 
-        {/* Quick Amount Buttons */}
-        <div className="grid grid-cols-3 gap-2">
+        {/* Buttons */}
+        <div className="grid grid-cols-3 md:grid-cols-7 gap-2">
           {quickAmounts.map((quickAmount) => (
             <button
               key={quickAmount}
@@ -217,7 +213,7 @@ const PaymentForm = ({ amount, setAmount, userData, backendURL, selectedCause })
         </div>
       </div>
 
-      {/* Card Element */}
+      {/* Card Element from stripe */}
       <div className="space-y-2">
         <label className="block text-gray-700 text-sm font-medium">Card Number</label>
         <div className="border border-gray-300 rounded-lg p-4 bg-white focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500">
@@ -241,7 +237,6 @@ const PaymentForm = ({ amount, setAmount, userData, backendURL, selectedCause })
         </div>
       </div>
 
-      {/* Cardholder Name */}
       <div className="space-y-2">
         <label className="block text-gray-700 text-sm font-medium">Cardholder Name</label>
         <input
@@ -255,7 +250,6 @@ const PaymentForm = ({ amount, setAmount, userData, backendURL, selectedCause })
         />
       </div>
 
-      {/* Country */}
       <div className="space-y-2">
         <label className="block text-gray-700 text-sm font-medium">Country</label>
         <select
@@ -311,7 +305,6 @@ const DonationPayment = () => {
     return <div>Access Denied</div>
   }
 
-  // Show loading while causes are being fetched
   if (causesLoading) {
     return (
       <div>
@@ -326,7 +319,6 @@ const DonationPayment = () => {
     )
   }
 
-  // If no causeId in URL or cause not found, go back
   if (!causeId || !selectedCause) {
     return (
       <div>
@@ -346,27 +338,26 @@ const DonationPayment = () => {
     )
   }
 
+  const handleCopy = (event) => {
+    const textToCopy = event.currentTarget.innerText;
+
+    navigator.clipboard.writeText(textToCopy)
+      .then(() => {
+        toast.success('Card number copied to clipboard');
+      })
+      .catch((err) => {
+        toast.error('Failed to copy text: ', err);
+      });
+  };
+
   return (
     <div>
       <Navbar />
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-8">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 pt-8 pb-6">
         <div className="max-w-6xl mx-auto">
-          {/* Back Button */}
-          <button
-            onClick={() => navigate(-1)}
-            className="text-blue-600 hover:text-blue-800 font-medium mb-8 flex items-center gap-2"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-            Back to Dashboard
-          </button>
-
-          {/* Main Container */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Left Side - Selected Cause & Amount Display */}
+            {/* Left Side */}
             <div className="lg:col-span-1 flex flex-col gap-8">
-              {/* Selected Cause Display */}
               <div>
                 <h3 className="text-lg font-semibold text-gray-800 mb-4">Donation Cause</h3>
                 <div className="max-w-sm">
@@ -378,7 +369,6 @@ const DonationPayment = () => {
                 </div>
               </div>
 
-              {/* Amount Display */}
               <div className="flex flex-col justify-center">
                 <div className="mb-4">
                   <p className="text-gray-500 text-sm font-medium uppercase tracking-wide">Donation Amount</p>
@@ -392,15 +382,15 @@ const DonationPayment = () => {
                   </p>
                 </div>
                 <div className="mt-6 px-4 py-2 bg-white border border-green-100 rounded-lg">
-                  <p className="text-gray-900 text-lg">Test Card Numbers:</p>
-                  <p className="text-gray-800 text-sm">Successfull Payment: 4242 4242 4242 4242</p>
-                  <p className="text-gray-800 text-sm">Insufficient Funds: 4000 0000 0000 9995</p>
-                  <p className="text-gray-800 text-sm">For more test card details: <a href="https://docs.stripe.com/testing" target="blank" className="text-blue-400 hover:text-blue-600 hover:underline hover:underline-offset-2">click here</a></p>
+                  <p className="text-gray-900 text-lg mb-2">Test Card Numbers: <span className='text-sm text-gray-400 ml-4'>(Click to Copy)</span></p>
+                  <p className="text-gray-800 text-sm mb-1">Successfull Payment: <span className='ml-2 cursor-pointer' onClick={handleCopy}>4242 4242 4242 4242</span></p>
+                  <p className="text-gray-800 text-sm mb-1">Insufficient Funds: <span className='ml-2 cursor-pointer' onClick={handleCopy}>4000 0000 0000 9995</span></p>
+                  <p className="text-gray-800 text-sm mb-1">For more test card details: <a href="https://docs.stripe.com/testing" target="blank" className="text-blue-400 hover:text-blue-600 hover:underline hover:underline-offset-2">click here</a></p>
                 </div>
               </div>
             </div>
 
-            {/* Right Side - Payment Form */}
+            {/* Right Side */}
             <div className="lg:col-span-2 bg-white rounded-2xl shadow-lg p-8">
               <Elements stripe={stripePromise}>
                 <PaymentForm 
