@@ -74,9 +74,27 @@ function Login() {
     }
   }, [isLoggedIn, userData])
 
+  const handleCopy = (event) => {
+    const textToCopy = event.currentTarget.innerText;
+
+    navigator.clipboard.writeText(textToCopy)
+      .then(() => {
+        toast.success('Copied to clipboard');
+      })
+      .catch((err) => {
+        toast.error('Failed to copy text: ', err);
+      });
+  };
+
   return (
     <div style={{ backgroundImage: `url(${assets.bg_img})` }} className="min-h-screen bg-cover bg-center">
     <Navbar/>
+    <div className="absolute bottom-0 right-0 bg-slate-900 rounded-tl-2xl p-4 text-white">
+      <h2 className="mb-2">Admin Sign Up requires SuperAdmin approval,<br /> mockAdmin login details: <span className="text-sm pl-4 text-indigo-300">(Click to Copy)</span></h2>
+      <p className="text-sm pl-4 text-indigo-300">E-mail: <span className="pl-4 text-indigo-400 cursor-pointer hover:underline hover:underline-offset-2" onClick={handleCopy}>mockAdmin@gmail.com</span></p>
+      <p className="text-sm pl-4 text-indigo-300">Password: <span className="pl-4 text-indigo-400 cursor-pointer hover:underline hover:underline-offset-2" onClick={handleCopy}>123456</span></p>
+      <p className="text-sm pl-4 text-indigo-300">Role: <span className="pl-4 text-indigo-400">Admin</span></p>
+    </div>
     <div className="flex mt-8 items-center justify-center px-6 sm:px-0">
       <div className="bg-slate-900 p-10 rounded-3xl shadow-lg w-full sm:w-96 text-indigo-300 text-sm">
         <h2 className="text-3xl font-semibold text-white text-center mb-3">

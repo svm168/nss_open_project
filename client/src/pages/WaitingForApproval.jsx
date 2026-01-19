@@ -126,12 +126,12 @@ export default function WaitingForApproval() {
         <div className="text-7xl md:text-8xl mb-8 animate-pulse-custom">⏳</div>
 
         <h1 className="text-2xl md:text-4xl font-bold text-gray-800 mb-8 leading-tight">
-          Waiting for Admin Approval
+          Waiting for SuperAdmin Approval
         </h1>
 
         <div className="bg-gray-50 border-l-4 border-indigo-500 rounded-lg p-6 md:p-8 mb-8 text-left">
           <p className="text-gray-700 text-sm md:text-base leading-relaxed mb-6">
-            Your admin account has been created successfully, but your access is pending approval from the platform owner.
+            Your admin account has been created successfully, but your access is pending approval from the SuperAdmin.
           </p>
 
           <div className="space-y-6">
@@ -149,7 +149,7 @@ export default function WaitingForApproval() {
                 What happens next?
               </span>
               <span className="col-span-2 text-gray-600 text-xs md:text-sm leading-relaxed">
-                The owner will review your request and send you an email with their decision.
+                The SuperAdmin will review your request and send you an email with their decision.
               </span>
             </div>
 
@@ -172,7 +172,7 @@ export default function WaitingForApproval() {
         </div>
 
         <p className="text-gray-500 text-xs md:text-sm italic leading-relaxed">
-          You will receive an email notification once the owner approves or denies your request.
+          You will receive an email notification once the SuperAdmin approves or denies your request.
         </p>
       </div>
     </div>
