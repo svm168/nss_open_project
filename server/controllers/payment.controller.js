@@ -134,7 +134,7 @@ export const getUserDonations = async (req, res) => {
 			populate: {
 				path: 'causeId',
 				model: 'Cause',
-				select: 'name image',
+				select: 'name',
 			},
 			options: { sort: { createdAt: -1 } },
 		})
@@ -217,7 +217,7 @@ export const getAllDonations = async (req, res) => {
 			.populate({
 				path: 'causeId',
 				model: 'Cause',
-				select: 'name image',
+				select: 'name',
 			})
 			.sort({ createdAt: -1 })
 

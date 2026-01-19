@@ -2,7 +2,6 @@ import mongoose from 'mongoose'
 
 const causeSchema = mongoose.Schema({
 	name: { type: String, required: true, unique: true },
-	image: { type: String, default: null },
 	description: { type: String, default: '' },
 	createdAt: { type: Date, default: Date.now },
 	updatedAt: { type: Date, default: Date.now },

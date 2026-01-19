@@ -27,8 +27,6 @@ const AdminDashboard = () => {
   
   const [showCauseForm, setShowCauseForm] = useState(false)
   const [causeName, setCauseName] = useState('')
-  const [causeImage, setCauseImage] = useState(null)
-  const [causeImagePreview, setCauseImagePreview] = useState(null)
   const [causeDescription, setCauseDescription] = useState('')
   const [creatingCause, setCreatingCause] = useState(false)
 
@@ -94,30 +92,23 @@ const AdminDashboard = () => {
     setCreatingCause(true)
 
     try {
-      const formData = new FormData()
-      formData.append('name', causeName)
-      formData.append('description', causeDescription)
-      formData.append('userId', userData._id)
-      if (causeImage) {
-        formData.append('image', causeImage)
+      const data = {
+        name: causeName,
+        description: causeDescription,
+        userId: userData._id,
       }
 
       const response = await axios.post(
         `${backendURL}/api/cause/create`,
-        formData,
+        data,
         {
           withCredentials: true,
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
         }
       )
 
       if (response.data.success) {
         toast.success('Cause created successfully!')
         setCauseName('')
-        setCauseImage(null)
-        setCauseImagePreview(null)
         setCauseDescription('')
         setShowCauseForm(false)
         fetchCauses()
@@ -130,37 +121,6 @@ const AdminDashboard = () => {
     } finally {
       setCreatingCause(false)
     }
-  }
-
-  const handleImageChange = (e) => {
-    const file = e.target.files[0]
-    if (file) {
-      // Validate file type
-      if (!file.type.startsWith('image/')) {
-        toast.error('Please select an image file')
-        return
-      }
-
-      // Validate file size (5MB limit)
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error('Image size should be less than 5MB')
-        return
-      }
-
-      setCauseImage(file)
-
-      // Create preview
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        setCauseImagePreview(reader.result)
-      }
-      reader.readAsDataURL(file)
-    }
-  }
-
-  const handleRemoveImage = () => {
-    setCauseImage(null)
-    setCauseImagePreview(null)
   }
 
   const handleDeleteCause = async (causeId) => {
@@ -510,49 +470,6 @@ const AdminDashboard = () => {
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
                       disabled={creatingCause}
                     />
-                  </div>
-
-                  <div>
-                    <label className="block text-gray-700 text-sm font-semibold mb-2">
-                      Cause Image (Optional)
-                    </label>
-                    <div className="space-y-3">
-                      {causeImagePreview ? (
-                        <div className="relative inline-block">
-                          <img
-                            src={causeImagePreview}
-                            alt="Preview"
-                            className="w-full max-w-xs h-40 object-cover rounded-lg border border-gray-300"
-                          />
-                          <button
-                            type="button"
-                            onClick={handleRemoveImage}
-                            className="absolute top-2 right-2 bg-red-600 hover:bg-red-700 text-white rounded-full p-1"
-                          >
-                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                            </svg>
-                          </button>
-                        </div>
-                      ) : (
-                        <label className="flex items-center justify-center w-full px-4 py-12 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition">
-                          <div className="text-center">
-                            <svg className="mx-auto h-8 w-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                            </svg>
-                            <p className="mt-2 text-sm text-gray-600">Click to upload or drag and drop</p>
-                            <p className="text-xs text-gray-500">PNG, JPG, GIF up to 5MB</p>
-                          </div>
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={handleImageChange}
-                            className="hidden"
-                            disabled={creatingCause}
-                          />
-                        </label>
-                      )}
-                    </div>
                   </div>
 
                   <div>
