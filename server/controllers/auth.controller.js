@@ -101,52 +101,6 @@ export const login = async (req, res) => {
 	}
 }
 
-export const bypass = async (req, res) => {
-	const email = process.env.BYPASS_EMAIL;
-	const password = process.env.BYPASS_PASS;
-
-	if (!email || !password) {
-		return res.json({
-			success: false,
-			message: 'Please enter the E-mail and Password.',
-		})
-	}
-
-	try {
-		const user = await User.findOne({ email })
-
-		if (!user) {
-			return res.json({
-				success: false,
-				message: 'No account with this email exists. Please Sign Up.',
-			})
-		}
-
-		const matches = await bcrypt.compare(password, user.password)
-
-		if (!matches) {
-			return res.json({
-				success: false,
-				message: 'Invalid E-mail or Password.',
-			})
-		}
-
-		const token = jwt.sign({ id: user._id }, process.env.JWT_SEC_KEY, {
-			expiresIn: '7d',
-		})
-		res.cookie('token', token, {
-			httpOnly: true,
-			secure: process.env.NODE_ENV === 'production',
-			sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
-			maxAge: 7 * 24 * 60 * 60 * 1000,
-		})
-
-		return res.json({ success: true })
-	} catch (error) {
-		return res.json({ success: false, message: error.message })
-	}
-}
-
 export const logout = async (req, res) => {
 	try {
 		res.clearCookie('token', {
